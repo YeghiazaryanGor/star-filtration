@@ -1,0 +1,7 @@
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+big_dataset.tsv
+small_dataset.tsv
