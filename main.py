@@ -39,7 +39,7 @@ def selecting_stars_in_fov(
         vertical_view: float,
         object_ra: float,
         object_dec: float,
-        stars_params: list,
+        stars_list: list,
         col_indexes: dict
 ) -> list:
     filtered_stars = []
@@ -55,17 +55,17 @@ def selecting_stars_in_fov(
         raise ValueError("The bottom edge of fov cannot "
                          "be less than -90 degrees")
 
-    for i in range(len(stars_params)):
+    for i in range(len(stars_list)):
         is_the_star_in_fovh = (fov_left_edge < 0 and (
-                360 + fov_left_edge <= stars_params[i][
+                360 + fov_left_edge <= stars_list[i][
             col_indexes["ra_ep2000"]] <= 360)) or \
                               (fov_left_edge >= 0 and (
-                                      fov_left_edge <= stars_params[i][
+                                      fov_left_edge <= stars_list[i][
                                   col_indexes["ra_ep2000"]] <= fov_right_edge))
 
-        if is_the_star_in_fovh and fov_bottom_edge <= stars_params[i][
+        if is_the_star_in_fovh and fov_bottom_edge <= stars_list[i][
             col_indexes["dec_ep2000"]] <= fov_upper_edge:
-            filtered_stars.append(stars_params[i])
+            filtered_stars.append(stars_list[i])
     return filtered_stars
 
 
@@ -94,6 +94,31 @@ def checking_if_there_is_stars_in_fov(
         raise EmptyFov("There are no stars in this fov, please try again")
 
 
+def calculating_distance(
+        stars_list: list,
+        object_ra: float,
+        object_dec: float,
+        col_indexes: dict
+) -> tuple:
+    for i in range(len(stars_list)):
+        temp_ra = stars_list[i][col_indexes["ra_ep2000"]]
+        temp_dec = stars_list[i][col_indexes["dec_ep2000"]]
+        distance = ((object_ra - temp_ra) ** 2 +
+                    (object_dec - temp_dec) ** 2) ** 0.5
+        stars_list[i].append(distance)
+    col_indexes["distance"] = len(col_indexes)
+    return stars_list, col_indexes
+
+
+def output_csv_file_creation(stars_list: list, head: list):
+    current_time = datetime.datetime.now()
+    current_timestamp = current_time.timestamp()
+    with open(str(current_timestamp) + ".csv", "w") as fl:
+        writer = csv.writer(fl)
+        writer.writerow(head)
+        writer.writerows(stars_list)
+
+
 def main():
     ra = float(input("Write Ra "))
     dec = float(input("Write Dec "))
@@ -118,7 +143,14 @@ def main():
     )
     stars_in_fov = sorting_by_column(stars_in_fov, "b", columns_indexes)
     stars_in_fov = checking_if_there_is_stars_in_fov(stars_in_fov, N)
-    print(stars_in_fov)
+    stars_in_fov, columns_indexes = calculating_distance(
+        stars_in_fov,
+        ra,
+        dec,
+        columns_indexes)
+    stars_in_fov = sorting_by_column(stars_in_fov, "distance", columns_indexes)
+    header = ["Id", "Ra", "Dec", "Brightness", "Distance"]
+    output_csv_file_creation(stars_in_fov, header)
 
 
 if __name__ == "__main__":
