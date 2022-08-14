@@ -84,7 +84,7 @@ def sorting_by_column(
     return to_be_sorted
 
 
-def checking_if_there_is_stars_in_fov(
+def is_stars_in_fov(
         stars_list: list,
         number_of_stars: int
 ) -> list:
@@ -152,7 +152,7 @@ def main():
         columns_indexes
     )
     stars_in_fov = sorting_by_column(stars_in_fov, "b", columns_indexes)
-    stars_in_fov = checking_if_there_is_stars_in_fov(stars_in_fov, N)
+    stars_in_fov = is_stars_in_fov(stars_in_fov, N)
     columns_indexes = adding_new_column("distance", columns_indexes)
     stars_in_fov = calculating_distance(
         stars_in_fov,
